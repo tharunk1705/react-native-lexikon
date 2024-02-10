@@ -1,117 +1,92 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState} from 'react';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import Error from './components/Error';
+import Results from './components/Results';
+import Search from './components/Search';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App = () => {
+  const [keyword, setKeyword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [results, setResults] = useState<any>([]);
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  const handleKeywordChange = (key: string) => {
+    key = key.trim();
+    if (key.includes(' ')) {
+      setError('Word cannot contain Space');
+      return;
+    } else {
+      setKeyword(key);
+      setError('');
+    }
+  };
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const handleSearch = async () => {
+    if (error.length > 0) {
+      return;
+    }
+    if (keyword.length < 2) {
+      setError('Word should atleast be of 2 characters');
+      setResults([]);
+    } else {
+      let res = await fetchResult();
+      if (res.status === 'success') {
+        // console.log(res.data);
+        setResults(res.data);
+        setKeyword('');
+      } else {
+        setError(res.data.title);
+        setResults([]);
+      }
+    }
+  };
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const fetchResult = async () => {
+    let responseData: any = {};
+    let response = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${keyword}`,
+    );
+    if (response.status === 200) {
+      responseData['status'] = 'success';
+    } else {
+      responseData['status'] = 'failure';
+    }
+    responseData['data'] = await response.json();
+    return responseData;
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView style={styles.mainContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Lexikon</Text>
+        <Search
+          keyword={keyword}
+          handleKeywordChange={handleKeywordChange}
+          handleSearch={handleSearch}
+        />
+        {error && <Error error={error} />}
+        <Results results={results} />
+      </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  mainContainer: {
+    backgroundColor: '#171717',
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 40,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  title: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    fontFamily: 'Outfit-Regular',
   },
 });
 
