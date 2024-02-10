@@ -6,7 +6,7 @@ const Results = ({results}: {results: any}) => {
   return (
     <ScrollView>
       {results.map((result: any, index: number) => (
-        <View key={index} testID="result">
+        <View key={index + Math.floor(Math.random() * 100)} testID="result">
           <View style={styles.scrollContainer}>
             <Text style={styles.word} testID="word">
               {result.word}

@@ -3,7 +3,7 @@ import React from 'react';
 
 const Meaning = ({meaning, index}: {meaning: any; index: number}) => {
   return (
-    <View key={index} testID="meaning">
+    <View key={index + Math.floor(Math.random() * 100)} testID="meaning">
       <Text style={styles.partOfSpeech}>~ {meaning.partOfSpeech} ~</Text>
 
       <View testID="definition">
